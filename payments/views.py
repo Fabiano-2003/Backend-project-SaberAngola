@@ -22,6 +22,9 @@ class SubscriptionListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False) or not self.request.user.is_authenticated:
+            return Subscription.objects.none()
         return Subscription.objects.filter(user=self.request.user)
 
 
@@ -30,6 +33,9 @@ class TransactionListView(generics.ListAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False) or not self.request.user.is_authenticated:
+            return Transaction.objects.none()
         return Transaction.objects.filter(user=self.request.user)
 
 

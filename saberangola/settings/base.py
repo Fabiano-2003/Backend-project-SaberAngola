@@ -30,6 +30,7 @@ THIRD_PARTY_APPS = [
     'django_filters',
     'storages',
     'drf_yasg',
+    'compressor',
 ]
 
 LOCAL_APPS = [
@@ -86,6 +87,10 @@ DATABASES = {
         'PASSWORD': os.environ.get('PGPASSWORD'),
         'HOST': os.environ.get('PGHOST'),
         'PORT': os.environ.get('PGPORT'),
+        'CONN_MAX_AGE': 300,  # 5 minutes connection pooling
+        'OPTIONS': {
+            'connect_timeout': 10,
+        },
     }
 }
 
@@ -118,6 +123,26 @@ USE_TZ = True
 STATIC_URL = '/static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [BASE_DIR / 'static']
+
+# Static files optimization
+STATICFILES_FINDERS = [
+    'django.contrib.staticfiles.finders.FileSystemFinder',
+    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+]
+
+# Static files storage configuration
+STATICFILES_STORAGE = 'django.contrib.staticfiles.storage.ManifestStaticFilesStorage'
+
+# Django Compressor Configuration
+COMPRESS_ENABLED = True
+COMPRESS_CSS_FILTERS = [
+    'compressor.filters.css_default.CssAbsoluteFilter',
+    'compressor.filters.cssmin.rCSSMinFilter',
+]
+COMPRESS_JS_FILTERS = [
+    'compressor.filters.jsmin.rJSMinFilter',
+]
+COMPRESS_OFFLINE = False  # Set to True in production
 
 # Media files
 MEDIA_URL = '/media/'
@@ -189,8 +214,17 @@ CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.redis.RedisCache',
         'LOCATION': config('REDIS_URL', default='redis://localhost:6379/1'),
+        'OPTIONS': {
+            'CLIENT_CLASS': 'django_redis.client.DefaultClient',
+        },
+        'KEY_PREFIX': 'saberangola',
+        'TIMEOUT': 300,  # 5 minutes default
     }
 }
+
+# Session Configuration (use cache for better performance)
+SESSION_ENGINE = 'django.contrib.sessions.backends.cache'
+SESSION_CACHE_ALIAS = 'default'
 
 # Security Settings
 CORS_ALLOWED_ORIGINS = [

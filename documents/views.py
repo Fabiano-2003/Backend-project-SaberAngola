@@ -17,6 +17,9 @@ class DocumentListCreateView(generics.ListCreateAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False) or not self.request.user.is_authenticated:
+            return Document.objects.none()
         return Document.objects.filter(user=self.request.user)
     
     def perform_create(self, serializer):
@@ -28,6 +31,9 @@ class DocumentDetailView(generics.RetrieveUpdateDestroyAPIView):
     permission_classes = [IsAuthenticated]
     
     def get_queryset(self):
+        # Handle Swagger schema generation
+        if getattr(self, 'swagger_fake_view', False) or not self.request.user.is_authenticated:
+            return Document.objects.none()
         return Document.objects.filter(user=self.request.user)
 
 
