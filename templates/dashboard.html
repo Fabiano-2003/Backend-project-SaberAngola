@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SaberAngola - Painel de Gestão</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3rem;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .header p {
+            font-size: 1.2rem;
+            opacity: 0.9;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-bottom: 40px;
+        }
+        
+        .stat-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-number {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+        
+        .stat-label {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+        
+        .action-card {
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            transition: transform 0.3s ease;
+        }
+        
+        .action-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .action-card h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+        
+        .action-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.6;
+        }
+        
+        .btn {
+            display: inline-block;
+            padding: 12px 24px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            text-decoration: none;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+        
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+        
+        .btn.secondary {
+            background: #f8f9fa;
+            color: #333;
+            border: 2px solid #e9ecef;
+        }
+        
+        .btn.secondary:hover {
+            background: #e9ecef;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-online {
+            background: #28a745;
+            box-shadow: 0 0 0 4px rgba(40, 167, 69, 0.2);
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 50px;
+            color: white;
+            opacity: 0.8;
+        }
+        
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+            
+            .actions-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🏛️ SaberAngola</h1>
+            <p>Painel de Gestão e Administração</p>
+        </div>
+        
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-number">{{ user_count }}</div>
+                <div class="stat-label">Usuários Registrados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ document_count }}</div>
+                <div class="stat-label">Documentos Criados</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ template_count }}</div>
+                <div class="stat-label">Templates Disponíveis</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-number">{{ subscription_count }}</div>
+                <div class="stat-label">Subscrições Ativas</div>
+            </div>
+        </div>
+        
+        <div class="actions-grid">
+            <div class="action-card">
+                <h3>🔧 Administração Django</h3>
+                <p>Interface completa para gestão de usuários, documentos, templates e configurações do sistema.</p>
+                <a href="/admin/" class="btn">Abrir Admin</a>
+                <span class="status-indicator status-online"></span>
+                <span>Sistema Online</span>
+            </div>
+            
+            <div class="action-card">
+                <h3>📚 Documentação da API</h3>
+                <p>Explore e teste todos os endpoints da API REST de forma interativa usando Swagger UI.</p>
+                <a href="/swagger/" class="btn">Ver API Docs</a>
+                <a href="/redoc/" class="btn secondary">ReDoc</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>👥 Gestão de Usuários</h3>
+                <p>Gerir usuários, perfis, atividades e permissões do sistema.</p>
+                <a href="/admin/authentication/user/" class="btn">Usuários</a>
+                <a href="/admin/users/profile/" class="btn secondary">Perfis</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>📄 Gestão de Documentos</h3>
+                <p>Administrar templates de documentos, documentos gerados e categorias.</p>
+                <a href="/admin/documents/template/" class="btn">Templates</a>
+                <a href="/admin/documents/document/" class="btn secondary">Documentos</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>💳 Gestão de Pagamentos</h3>
+                <p>Monitorar planos, subscrições e transações do sistema de pagamentos.</p>
+                <a href="/admin/payments/plan/" class="btn">Planos</a>
+                <a href="/admin/payments/subscription/" class="btn secondary">Subscrições</a>
+            </div>
+            
+            <div class="action-card">
+                <h3>⚙️ Configurações do Sistema</h3>
+                <p>Acesso direto às configurações e ferramentas administrativas importantes.</p>
+                <a href="/admin/" class="btn">Configurações</a>
+                <span class="status-indicator status-online"></span>
+                <span>BD: Conectado</span>
+            </div>
+        </div>
+        
+        <div class="footer">
+            <p>&copy; 2025 SaberAngola - Sistema de Gestão de Documentos</p>
+            <p>Versão 1.0.0 | Ambiente: {{ environment }}</p>
+        </div>
+    </div>
+</body>
+</html>
