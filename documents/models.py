@@ -5,6 +5,27 @@ import uuid
 
 class Template(models.Model):
     CATEGORIES = [
+        # Declarações
+        ('declaracao_simples', 'Declaração Simples'),
+        ('declaracao_laboral', 'Declaração Laboral/Financeira'),
+        ('declaracao_complexa', 'Declaração Complexa'),
+        
+        # Contratos
+        ('contrato_simples', 'Contrato Simples'),
+        ('contrato_servicos', 'Contrato de Prestação de Serviços'),
+        ('contrato_complexo', 'Contrato Complexo'),
+        
+        # Faturas
+        ('fatura_simples', 'Fatura Simples'),
+        ('fatura_comercial', 'Fatura Comercial'),
+        ('documento_auxiliar', 'Documento Auxiliar'),
+        
+        # Currículos
+        ('cv_basico', 'CV Básico'),
+        ('cv_profissional', 'CV Profissional'),
+        ('cv_multilingue', 'CV Multilíngue'),
+        
+        # Categorias antigas (manter compatibilidade)
         ('contract', 'Contrato'),
         ('invoice', 'Factura'),
         ('report', 'Relatório'),
@@ -14,6 +35,8 @@ class Template(models.Model):
     name = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=CATEGORIES)
+    subcategory = models.CharField(max_length=100, blank=True, default='')  # Para especificar tipo específico dentro da categoria
+    price_kz = models.DecimalField(max_digits=10, decimal_places=2, default=0)  # Preço em Kwanzas
     fields = models.JSONField(default=dict)  # Template field definitions
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
