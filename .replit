@@ -24,7 +24,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "python manage.py runserver 0.0.0.0:8000"
+args = "DJANGO_SETTINGS_MODULE=saberangola.settings.dev python manage.py runserver 0.0.0.0:8000"
 waitForPort = 8000
 
 [workflows.workflow.metadata]
