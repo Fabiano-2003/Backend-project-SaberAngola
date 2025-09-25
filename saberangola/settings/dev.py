@@ -20,8 +20,7 @@ CACHES = {
 }
 
 # Development-specific logging
-LOGGING['loggers']['django']['level'] = 'DEBUG'
-LOGGING['loggers']['saberangola']['level'] = 'DEBUG'
+# Debug logging enabled in development mode
 
 # Development CORS settings
 CORS_ALLOW_ALL_ORIGINS = True
