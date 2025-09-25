@@ -1,40 +1,68 @@
-from rest_framework import generics, status
-from rest_framework.decorators import api_view, permission_classes
+from rest_framework import viewsets, permissions, status
+from rest_framework.decorators import action
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from django.contrib.auth import get_user_model
+from rest_framework.exceptions import ValidationError, APIException
+from django.http import Http404
 from .models import Payment, Invoice
+from .serializers import PaymentSerializer, InvoiceSerializer
+from .services import PaymentService
 
-# Placeholder views - will be implemented according to backend-4-views.md
-User = get_user_model()
+class PaymentRequiredError(APIException):
+    status_code = 402
+    default_detail = 'Payment Required'
+    default_code = 'payment_required'
 
-class PlanListView(generics.GenericAPIView):
-    def get(self, request):
-        return Response({'message': 'Plan list view placeholder'})
-
-class SubscriptionListView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+class PaymentViewSet(viewsets.ModelViewSet):
+    serializer_class = PaymentSerializer
+    permission_classes = [permissions.IsAuthenticated]
     
-    def get(self, request):
-        return Response({'message': 'Subscription list view placeholder'})
-
-class TransactionListView(generics.GenericAPIView):
-    permission_classes = [IsAuthenticated]
+    def get_queryset(self):
+        return Payment.objects.filter(user=self.request.user)
     
-    def get(self, request):
-        return Response({'message': 'Transaction list view placeholder'})
-
-@api_view(['POST'])
-@permission_classes([IsAuthenticated])
-def create_subscription(request):
-    return Response({'message': 'Create subscription placeholder'})
-
-@api_view(['POST'])
-@permission_classes([])
-def payment_webhook(request):
-    return Response({'message': 'Payment webhook placeholder'})
-
-@api_view(['GET'])
-@permission_classes([IsAuthenticated])
-def subscription_status(request):
-    return Response({'message': 'Subscription status placeholder'})
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user)
+        try:
+            PaymentService.process_payment(payment)
+        except ValueError as e:
+            # Business logic errors (400)
+            raise ValidationError(str(e))
+        except Exception as e:
+            # Payment gateway errors (402)
+            payment.status = 'failed'
+            payment.save()
+            raise PaymentRequiredError(f'Payment processing failed: {str(e)}')
+    
+    @action(detail=True, methods=['post'])
+    def process(self, request, pk=None):
+        payment = self.get_object()
+        try:
+            result = PaymentService.process_payment(payment)
+            return Response(
+                {
+                    'payment': PaymentSerializer(result['payment']).data,
+                    'invoice': InvoiceSerializer(result['invoice']).data if 'invoice' in result else None,
+                    'status': result['status']
+                }
+            )
+        except ValueError as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        except Exception as e:
+            return Response(
+                {'error': f'Payment processing failed: {str(e)}'},
+                status=status.HTTP_402_PAYMENT_REQUIRED
+            )
+    
+    @action(detail=True, methods=['get'])
+    def invoice(self, request, pk=None):
+        payment = self.get_object()
+        try:
+            invoice = payment.invoice
+            return Response(InvoiceSerializer(invoice).data)
+        except Invoice.DoesNotExist:
+            return Response(
+                {'detail': 'Invoice not found'},
+                status=status.HTTP_404_NOT_FOUND
+            )
