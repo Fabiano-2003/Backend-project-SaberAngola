@@ -6,6 +6,7 @@ from pathlib import Path
 from datetime import timedelta
 import os
 from decouple import config
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent.parent
@@ -34,11 +35,9 @@ THIRD_PARTY_APPS = [
 ]
 
 LOCAL_APPS = [
-    'authentication',
-    'users',
-    'documents',
-    'payments',
-    'health',
+    'apps.users',
+    'apps.documents',
+    'apps.payments',
 ]
 
 INSTALLED_APPS = DJANGO_APPS + THIRD_PARTY_APPS + LOCAL_APPS
@@ -78,24 +77,16 @@ TEMPLATES = [
 WSGI_APPLICATION = 'saberangola.wsgi.application'
 
 # Database
-import os
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.environ.get('PGDATABASE'),
-        'USER': os.environ.get('PGUSER'),
-        'PASSWORD': os.environ.get('PGPASSWORD'),
-        'HOST': os.environ.get('PGHOST'),
-        'PORT': os.environ.get('PGPORT'),
-        'CONN_MAX_AGE': 300,  # 5 minutes connection pooling
-        'OPTIONS': {
-            'connect_timeout': 10,
-        },
-    }
+    'default': dj_database_url.config(
+        default=os.environ.get('DATABASE_URL'),
+        conn_max_age=300,
+        conn_health_checks=True,
+    )
 }
 
 # Custom User Model
-AUTH_USER_MODEL = 'authentication.User'
+AUTH_USER_MODEL = 'users.User'
 
 # Password validation
 AUTH_PASSWORD_VALIDATORS = [
