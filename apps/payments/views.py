@@ -35,8 +35,31 @@ class PaymentViewSet(viewsets.ModelViewSet):
     @action(detail=True, methods=['post'])
     def process(self, request, pk=None):
         payment = self.get_object()
+        
+        # Check if payment is not in pending status
+        if payment.status != 'pending':
+            return Response(
+                {
+                    'error': f'Payment cannot be processed. Current status: {payment.status}',
+                    'payment': PaymentSerializer(payment).data,
+                    'status': payment.status
+                },
+                status=status.HTTP_409_CONFLICT
+            )
+        
         try:
             result = PaymentService.process_payment(payment)
+            if result is None:
+                # This should not happen for pending payments, but handle gracefully
+                return Response(
+                    {
+                        'error': 'Payment processing returned no result',
+                        'payment': PaymentSerializer(payment).data,
+                        'status': payment.status
+                    },
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
             return Response(
                 {
                     'payment': PaymentSerializer(result['payment']).data,

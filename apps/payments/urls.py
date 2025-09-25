@@ -1,13 +1,12 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from . import views
 
 app_name = 'payments'
 
+router = DefaultRouter()
+router.register(r'payments', views.PaymentViewSet, basename='payment')
+
 urlpatterns = [
-    path('plans/', views.PlanListView.as_view(), name='plan-list'),
-    path('subscriptions/', views.SubscriptionListView.as_view(), name='subscription-list'),
-    path('transactions/', views.TransactionListView.as_view(), name='transaction-list'),
-    path('subscribe/', views.create_subscription, name='create-subscription'),
-    path('webhook/', views.payment_webhook, name='payment-webhook'),
-    path('status/', views.subscription_status, name='subscription-status'),
+    path('', include(router.urls)),
 ]
