@@ -7,7 +7,7 @@ from .base import *
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='saberangola.ao,localhost', cast=str).split(',')
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='saberangola.ao,localhost').split(',')
 
 # Security settings
 SECURE_BROWSER_XSS_FILTER = True
