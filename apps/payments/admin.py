@@ -1,87 +1,22 @@
 from django.contrib import admin
 from django.utils.html import format_html
-from django.db.models import Count, Sum
-from django.urls import reverse
-from django.utils import timezone
-from datetime import datetime, timedelta
-from .models import Plan, Subscription, Transaction
+from .models import Payment, Invoice
 
-
-@admin.register(Plan)
-class PlanAdmin(admin.ModelAdmin):
-    list_display = ('name', 'type', 'price', 'currency', 'duration_days', 'is_active')
-    list_filter = ('type', 'is_active', 'currency')
-    search_fields = ('name', 'description')
-    ordering = ('type', 'price')
-    list_editable = ('is_active',)
-    
-    fieldsets = (
-        ('Informações do Plano', {
-            'fields': ('name', 'description', 'type')
-        }),
-        ('Preço e Duração', {
-            'fields': ('price', 'currency', 'duration_days', 'interval')
-        }),
-        ('Funcionalidades', {
-            'fields': ('features',),
-            'classes': ('collapse',)
-        }),
-        ('Status', {
-            'fields': ('is_active',)
-        })
-    )
-
-
-@admin.register(Subscription)
-class SubscriptionAdmin(admin.ModelAdmin):
-    list_display = ('user', 'plan', 'status', 'start_date', 'end_date', 'auto_renew')
-    list_filter = ('status', 'auto_renew', 'plan__type', 'created_at')
-    search_fields = ('user__email', 'user__name', 'plan__name')
+@admin.register(Payment)
+class PaymentAdmin(admin.ModelAdmin):
+    list_display = ('transaction_id', 'user', 'amount', 'status', 'payment_method', 'created_at')
+    list_filter = ('status', 'payment_method', 'created_at')
+    search_fields = ('transaction_id', 'user__email', 'user__username')
     ordering = ('-created_at',)
-    readonly_fields = ('created_at',)
+    readonly_fields = ('created_at', 'updated_at')
     raw_id_fields = ('user',)
-    list_per_page = 25
-    date_hierarchy = 'created_at'
-    actions = ['activate_subscriptions', 'cancel_subscriptions', 'extend_subscription']
     
     fieldsets = (
-        ('Subscrição', {
-            'fields': ('user', 'plan', 'status')
+        ('Informações do Pagamento', {
+            'fields': ('user', 'amount', 'payment_method')
         }),
-        ('Período', {
-            'fields': ('start_date', 'end_date', 'auto_renew')
-        }),
-        ('Timestamps', {
-            'fields': ('created_at',),
-            'classes': ('collapse',)
-        })
-    )
-    
-    def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'plan')
-
-
-@admin.register(Transaction)
-class TransactionAdmin(admin.ModelAdmin):
-    list_display = ('id', 'user', 'amount', 'currency', 'status', 'payment_method', 'created_at')
-    list_filter = ('status', 'payment_method', 'currency', 'created_at')
-    search_fields = ('user__email', 'user__name', 'reference', 'gateway_reference')
-    ordering = ('-created_at',)
-    readonly_fields = ('id', 'created_at', 'updated_at')
-    raw_id_fields = ('user', 'subscription')
-    list_per_page = 25
-    date_hierarchy = 'created_at'
-    actions = ['mark_as_completed', 'mark_as_failed', 'process_refunds']
-    
-    fieldsets = (
-        ('Transação', {
-            'fields': ('id', 'user', 'subscription', 'status')
-        }),
-        ('Valores', {
-            'fields': ('amount', 'currency', 'payment_method')
-        }),
-        ('Referências', {
-            'fields': ('reference', 'gateway_reference')
+        ('Status e Referência', {
+            'fields': ('status', 'transaction_id')
         }),
         ('Timestamps', {
             'fields': ('created_at', 'updated_at'),
@@ -90,4 +25,45 @@ class TransactionAdmin(admin.ModelAdmin):
     )
     
     def get_queryset(self, request):
-        return super().get_queryset(request).select_related('user', 'subscription', 'subscription__plan')
+        return super().get_queryset(request).select_related('user')
+    
+    def status_display(self, obj):
+        colors = {
+            'pending': 'orange',
+            'processing': 'blue',
+            'completed': 'green',
+            'failed': 'red',
+            'refunded': 'purple'
+        }
+        color = colors.get(obj.status, 'gray')
+        return format_html('<span style="color: {};">{}</span>', color, obj.get_status_display())
+    status_display.short_description = 'Status'
+
+@admin.register(Invoice)
+class InvoiceAdmin(admin.ModelAdmin):
+    list_display = ('invoice_number', 'payment', 'due_date', 'paid_date', 'has_pdf')
+    list_filter = ('due_date', 'paid_date')
+    search_fields = ('invoice_number', 'payment__transaction_id', 'payment__user__email')
+    ordering = ('-due_date',)
+    raw_id_fields = ('payment',)
+    
+    fieldsets = (
+        ('Fatura', {
+            'fields': ('payment', 'invoice_number')
+        }),
+        ('Datas', {
+            'fields': ('due_date', 'paid_date')
+        }),
+        ('Arquivo', {
+            'fields': ('pdf_file',)
+        })
+    )
+    
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('payment', 'payment__user')
+    
+    def has_pdf(self, obj):
+        if obj.pdf_file:
+            return format_html('<span style="color: green;">✓ Sim</span>')
+        return format_html('<span style="color: red;">✗ Não</span>')
+    has_pdf.short_description = 'PDF'

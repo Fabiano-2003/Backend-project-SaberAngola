@@ -41,11 +41,9 @@ urlpatterns = [
     path('redoc/', schema_view.with_ui('redoc', cache_timeout=0), name='schema-redoc'),
     
     # API Endpoints
-    path('api/health/', include('health.urls')),
-    path('api/auth/', include('authentication.urls')),
-    path('api/users/', include('users.urls')),
-    path('api/documents/', include('documents.urls')),
-    path('api/payments/', include('payments.urls')),
+    path('api/auth/', include('apps.users.urls')),
+    path('api/documents/', include('apps.documents.urls')),
+    path('api/payments/', include('apps.payments.urls')),
 ]
 
 if settings.DEBUG:
