@@ -1,26 +1,39 @@
 from rest_framework import serializers
-from .models import Plan, Subscription, Transaction
+from .models import Payment, Invoice
+from django.contrib.auth import get_user_model
+
+User = get_user_model()
 
 
-class PlanSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Plan
-        fields = ('id', 'name', 'description', 'price', 'duration_days', 'features', 'is_active')
-
-
-class SubscriptionSerializer(serializers.ModelSerializer):
-    plan_name = serializers.CharField(source='plan.name', read_only=True)
-    plan_price = serializers.DecimalField(source='plan.price', read_only=True, max_digits=10, decimal_places=2)
+class PaymentSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
     
     class Meta:
-        model = Subscription
-        fields = ('id', 'plan', 'plan_name', 'plan_price', 'status', 'start_date', 'end_date', 'created_at')
+        model = Payment
+        fields = ('id', 'user', 'user_username', 'amount', 'status', 'payment_method', 
+                 'transaction_id', 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
 
 
-class TransactionSerializer(serializers.ModelSerializer):
-    subscription_plan = serializers.CharField(source='subscription.plan.name', read_only=True)
+class PaymentCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Payment
+        fields = ('amount', 'payment_method')
+
+
+class InvoiceSerializer(serializers.ModelSerializer):
+    user_username = serializers.CharField(source='user.username', read_only=True)
+    payment_amount = serializers.DecimalField(source='payment.amount', read_only=True, max_digits=10, decimal_places=2)
     
     class Meta:
-        model = Transaction
-        fields = ('id', 'subscription', 'subscription_plan', 'amount', 'payment_method', 
-                 'reference', 'status', 'created_at', 'updated_at')
+        model = Invoice
+        fields = ('id', 'user', 'user_username', 'payment', 'payment_amount', 'invoice_number', 
+                 'amount', 'tax_amount', 'total_amount', 'status', 'due_date', 
+                 'created_at', 'updated_at')
+        read_only_fields = ('id', 'created_at', 'updated_at')
+
+
+class InvoiceCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Invoice
+        fields = ('payment', 'amount', 'tax_amount', 'due_date')
