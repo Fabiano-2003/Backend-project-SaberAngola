@@ -25,4 +25,5 @@ dependencies = [
     "django-filter==23.5.0",
     "redis==5.0.1",
     "celery==5.3.4",
+    "dj-database-url>=3.0.1",
 ]
