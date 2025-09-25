@@ -1,16 +1,28 @@
+import uuid
+from decimal import Decimal
+from django.conf import settings
 from .models import Payment, Invoice
+from datetime import datetime, timedelta
 from django.utils import timezone
-from datetime import timedelta
 
 
 class PaymentService:
     @staticmethod
-    def process_payment(payment):
-        """
-        Process payment logic with proper error handling
-        """
+    def generate_transaction_id():
+        return str(uuid.uuid4())
+    
+    @staticmethod
+    def generate_invoice_number():
+        prefix = timezone.now().strftime('%Y%m')
+        count = Invoice.objects.filter(
+            invoice_number__startswith=prefix
+        ).count()
+        return f"{prefix}-{str(count + 1).zfill(4)}"
+    
+    @staticmethod
+    def process_payment(payment: Payment):
         if payment.status != 'pending':
-            raise ValueError(f'Payment {payment.id} is not in pending status')
+            return
         
         try:
             # Update status to processing
@@ -26,8 +38,18 @@ class PaymentService:
                 payment.status = 'completed'
                 payment.save()
                 
-                # Create invoice only after successful payment
-                invoice = PaymentService._create_invoice(payment)
+                # Create invoice
+                due_date = timezone.now().date() + timedelta(days=30)
+                invoice = Invoice.objects.create(
+                    user=payment.user,
+                    payment=payment,
+                    invoice_number=PaymentService.generate_invoice_number(),
+                    amount=payment.amount,
+                    tax_amount=payment.amount * Decimal('0.14'),  # 14% IVA
+                    total_amount=payment.amount * Decimal('1.14'),
+                    status='paid',
+                    due_date=due_date
+                )
                 
                 return {'status': 'success', 'payment': payment, 'invoice': invoice}
             else:
@@ -51,25 +73,3 @@ class PaymentService:
         # Simulate 95% success rate for demo purposes
         import random
         return random.random() < 0.95
-    
-    @staticmethod
-    def _create_invoice(payment):
-        """
-        Create invoice for successful payment
-        """
-        tax_rate = 0.14  # 14% IVA in Angola
-        tax_amount = payment.amount * tax_rate
-        total_amount = payment.amount + tax_amount
-        
-        invoice = Invoice.objects.create(
-            user=payment.user,
-            payment=payment,
-            invoice_number=f'INV-{payment.id:06d}-{timezone.now().strftime("%Y%m%d")}',
-            amount=payment.amount,
-            tax_amount=tax_amount,
-            total_amount=total_amount,
-            status='paid',
-            due_date=timezone.now().date() + timedelta(days=30)
-        )
-        
-        return invoice
