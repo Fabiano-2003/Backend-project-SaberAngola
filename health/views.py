@@ -27,6 +27,8 @@ class HealthCheckView(APIView):
         try:
             with connection.cursor() as cursor:
                 cursor.execute('SELECT 1')
+                cursor.fetchone()
             return True
-        except Exception:
+        except Exception as e:
+            print(f"Database check failed: {e}")
             return False

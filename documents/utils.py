@@ -34,7 +34,7 @@ class DocumentGenerator:
         story.append(Spacer(1, 12))
         
         # Process template fields
-        fields = json.loads(template.fields) if template.fields else {}
+        fields = template.fields if template.fields else {}
         
         for field_name, field_config in fields.items():
             if field_name in data:
@@ -64,7 +64,7 @@ class DocumentGenerator:
         title.alignment = 1  # Center alignment
         
         # Process template fields
-        fields = json.loads(template.fields) if template.fields else {}
+        fields = template.fields if template.fields else {}
         
         for field_name, field_config in fields.items():
             if field_name in data:
