@@ -85,26 +85,31 @@ class DocumentGenerator:
     def generate_xlsx(self, template, data):
         wb = Workbook()
         ws = wb.active
-        ws.title = template.name
-        
-        # Set title
-        ws['A1'] = template.name
-        ws['A1'].font = Font(size=16, bold=True)
-        ws['A1'].alignment = Alignment(horizontal='center')
-        
-        # Process template fields
-        fields = json.loads(template.fields) if template.fields else {}
-        row = 3
-        
-        for field_name, field_config in fields.items():
-            if field_name in data:
-                value = data[field_name]
-                
-                # Add field label and value
-                ws[f'A{row}'] = field_config.get('label', field_name)
-                ws[f'A{row}'].font = Font(bold=True)
-                ws[f'B{row}'] = str(value)
-                row += 1
+        if ws is not None:
+            ws.title = str(template.name)
+            
+            # Set title
+            title_cell = ws['A1']
+            title_cell.value = str(template.name)
+            title_cell.font = Font(size=16, bold=True)
+            title_cell.alignment = Alignment(horizontal='center')
+            
+            # Process template fields
+            fields = json.loads(template.fields) if template.fields else {}
+            row = 3
+            
+            for field_name, field_config in fields.items():
+                if field_name in data:
+                    value = data[field_name]
+                    
+                    # Add field label and value
+                    label_cell = ws[f'A{row}']
+                    label_cell.value = field_config.get('label', field_name)
+                    label_cell.font = Font(bold=True)
+                    
+                    value_cell = ws[f'B{row}']
+                    value_cell.value = str(value)
+                    row += 1
         
         # Save to buffer
         buffer = io.BytesIO()

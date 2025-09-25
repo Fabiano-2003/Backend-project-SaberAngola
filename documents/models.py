@@ -19,8 +19,8 @@ class Template(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return str(self.name)
 
 
 class Document(models.Model):
@@ -51,5 +51,5 @@ class Document(models.Model):
     class Meta:
         ordering = ['-created_at']
         
-    def __str__(self):
-        return self.name
+    def __str__(self) -> str:
+        return str(self.name)

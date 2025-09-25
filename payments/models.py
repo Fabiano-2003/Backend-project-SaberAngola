@@ -20,7 +20,7 @@ class Plan(models.Model):
     features = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f'{self.name} - {self.price} {self.currency}'
 
 
@@ -40,8 +40,8 @@ class Subscription(models.Model):
     auto_renew = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
-        return f'{self.user.email} - {self.plan.name}'
+    def __str__(self) -> str:
+        return f'{str(self.user.email)} - {self.plan.name}'
 
 
 class Transaction(models.Model):
@@ -65,5 +65,5 @@ class Transaction(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
-    def __str__(self):
+    def __str__(self) -> str:
         return f'Transaction {self.id} - {self.amount} {self.currency}'

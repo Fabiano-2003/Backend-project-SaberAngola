@@ -33,8 +33,8 @@ class RegisterView(APIView):
             user = serializer.save()
             return Response({
                 'id': user.id,
-                'email': user.email,
-                'name': user.name
+                'email': str(user.email),
+                'name': str(user.name)
             }, status=status.HTTP_201_CREATED)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
