@@ -1,4 +1,9 @@
 from django.contrib import admin
+from django.utils.html import format_html
+from django.db.models import Count, Sum
+from django.urls import reverse
+from django.utils import timezone
+from datetime import datetime, timedelta
 from .models import Plan, Subscription, Transaction
 
 
@@ -35,6 +40,9 @@ class SubscriptionAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('created_at',)
     raw_id_fields = ('user',)
+    list_per_page = 25
+    date_hierarchy = 'created_at'
+    actions = ['activate_subscriptions', 'cancel_subscriptions', 'extend_subscription']
     
     fieldsets = (
         ('Subscrição', {
@@ -61,6 +69,9 @@ class TransactionAdmin(admin.ModelAdmin):
     ordering = ('-created_at',)
     readonly_fields = ('id', 'created_at', 'updated_at')
     raw_id_fields = ('user', 'subscription')
+    list_per_page = 25
+    date_hierarchy = 'created_at'
+    actions = ['mark_as_completed', 'mark_as_failed', 'process_refunds']
     
     fieldsets = (
         ('Transação', {

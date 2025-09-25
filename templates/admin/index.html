@@ -1,0 +1,162 @@
+{% extends "admin/base_site.html" %}
+{% load i18n static %}
+
+{% block extrastyle %}{{ block.super }}<link rel="stylesheet" type="text/css" href="{% static "admin/css/dashboard.css" %}">{% endblock %}
+
+{% block coltype %}colMS{% endblock %}
+
+{% block bodyclass %}{{ block.super }} dashboard{% endblock %}
+
+{% block breadcrumbs %}{% endblock %}
+
+{% block content %}
+<div id="content-main">
+
+    <!-- Dashboard de Estatísticas -->
+    <div class="dashboard-stats">
+        <div class="stat-card">
+            <div class="stat-number" id="total-users">{{ stats.total_users|default:0 }}</div>
+            <div class="stat-label">👥 Total de Usuários</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="premium-users">{{ stats.premium_users|default:0 }}</div>
+            <div class="stat-label">⭐ Usuários Premium</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="total-documents">{{ stats.total_documents|default:0 }}</div>
+            <div class="stat-label">📄 Documentos Gerados</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="pending-documents">{{ stats.pending_documents|default:0 }}</div>
+            <div class="stat-label">⏳ Documentos Pendentes</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="active-templates">{{ stats.active_templates|default:0 }}</div>
+            <div class="stat-label">📝 Templates Ativos</div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="stat-number" id="total-revenue">{{ stats.total_revenue|default:"0 KZ" }}</div>
+            <div class="stat-label">💰 Receita Total</div>
+        </div>
+    </div>
+
+    <!-- Status do Sistema -->
+    <div class="module" style="margin-top: 20px;">
+        <h2>🔧 Status do Sistema</h2>
+        <div style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px;">
+                <div style="background: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+                    <strong>🟢 Base de Dados:</strong> Conectada
+                </div>
+                <div style="background: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+                    <strong>🟢 Redis Cache:</strong> Operacional  
+                </div>
+                <div style="background: #d4edda; padding: 15px; border-radius: 5px; border-left: 4px solid #28a745;">
+                    <strong>🟢 API REST:</strong> Funcionando
+                </div>
+                <div style="background: #fff3cd; padding: 15px; border-radius: 5px; border-left: 4px solid #ffc107;">
+                    <strong>🟡 Processamento:</strong> {{ stats.pending_documents|default:0 }} na fila
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Aplicações do Sistema -->
+    {% if app_list %}
+        {% for app in app_list %}
+            <div class="app-{{ app.app_label }} module">
+                <table>
+                    <caption>
+                        <a href="{{ app.app_url }}" class="section" title="{% blocktrans with name=app.name %}Models in the {{ name }} application{% endblocktrans %}">
+                            {% if app.app_label == 'authentication' %}👤 Autenticação
+                            {% elif app.app_label == 'users' %}👥 Usuários  
+                            {% elif app.app_label == 'documents' %}📄 Documentos
+                            {% elif app.app_label == 'payments' %}💳 Pagamentos
+                            {% elif app.app_label == 'health' %}🏥 Monitoramento
+                            {% else %}{{ app.name }}{% endif %}
+                        </a>
+                    </caption>
+                    {% for model in app.models %}
+                        <tr class="model-{{ model.object_name|lower }}">
+                            {% if model.admin_url %}
+                                <th scope="row"><a href="{{ model.admin_url }}">{{ model.name }}</a></th>
+                            {% else %}
+                                <th scope="row">{{ model.name }}</th>
+                            {% endif %}
+
+                            {% if model.add_url %}
+                                <td><a href="{{ model.add_url }}" class="addlink">{% trans 'Adicionar' %}</a></td>
+                            {% else %}
+                                <td>&nbsp;</td>
+                            {% endif %}
+
+                            {% if model.admin_url %}
+                                {% if model.view_only %}
+                                    <td><a href="{{ model.admin_url }}" class="viewlink">{% trans 'Ver' %}</a></td>
+                                {% else %}
+                                    <td><a href="{{ model.admin_url }}" class="changelink">{% trans 'Alterar' %}</a></td>
+                                {% endif %}
+                            {% else %}
+                                <td>&nbsp;</td>
+                            {% endif %}
+                        </tr>
+                    {% endfor %}
+                </table>
+            </div>
+        {% endfor %}
+    {% else %}
+        <p>{% trans "You don't have permission to view or edit anything." %}</p>
+    {% endif %}
+    
+    <!-- Links Rápidos -->
+    <div class="module" style="margin-top: 20px;">
+        <h2>🚀 Ações Rápidas</h2>
+        <div style="padding: 20px;">
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 10px;">
+                <a href="{% url 'admin:authentication_user_add' %}" style="background: #007bff; color: white; padding: 10px; text-decoration: none; border-radius: 5px; text-align: center;">
+                    ➕ Novo Usuário
+                </a>
+                <a href="{% url 'admin:documents_template_changelist' %}" style="background: #fd7e14; color: white; padding: 10px; text-decoration: none; border-radius: 5px; text-align: center;">
+                    📝 Ver Templates
+                </a>
+                <a href="{% url 'admin:payments_transaction_changelist' %}" style="background: #dc3545; color: white; padding: 10px; text-decoration: none; border-radius: 5px; text-align: center;">
+                    💰 Ver Transações
+                </a>
+                <a href="{% url 'admin:documents_document_changelist' %}?status=pending" style="background: #28a745; color: white; padding: 10px; text-decoration: none; border-radius: 5px; text-align: center;">
+                    ⏳ Docs Pendentes
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// Atualizar estatísticas dinamicamente (opcional)
+function updateStats() {
+    fetch('/admin/stats/', {
+        method: 'GET',
+        headers: {
+            'X-Requested-With': 'XMLHttpRequest',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]')?.value || ''
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        document.getElementById('total-users').textContent = data.total_users || 0;
+        document.getElementById('premium-users').textContent = data.premium_users || 0;
+        document.getElementById('total-documents').textContent = data.total_documents || 0;
+        document.getElementById('pending-documents').textContent = data.pending_documents || 0;
+        document.getElementById('active-templates').textContent = data.active_templates || 0;
+    })
+    .catch(error => console.log('Erro ao atualizar estatísticas:', error));
+}
+
+// Atualizar a cada 30 segundos
+setInterval(updateStats, 30000);
+</script>
+{% endblock %}

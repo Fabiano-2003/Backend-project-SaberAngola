@@ -8,7 +8,8 @@ from django.conf.urls.static import static
 from rest_framework import permissions
 from drf_yasg.views import get_schema_view
 from drf_yasg import openapi
-from .views import dashboard_view
+from .views import dashboard_view, admin_stats_api
+from .admin import admin_site
 
 # Swagger API Documentation Schema
 schema_view = get_schema_view(
@@ -25,8 +26,11 @@ schema_view = get_schema_view(
 )
 
 urlpatterns = [
-    # Admin Interface
-    path('admin/', admin.site.urls),
+    # Admin Stats API (must come before admin/ to avoid being captured)
+    path('admin/stats/', admin_stats_api, name='admin_stats_api'),
+    
+    # Admin Interface (custom admin site with stats context)
+    path('admin/', admin_site.urls),
     
     # Dashboard
     path('', dashboard_view, name='dashboard'),
